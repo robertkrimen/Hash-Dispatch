@@ -1,5 +1,5 @@
 package Hash::Dispatch;
-# ABSTRACT: Find CODE in a hash (or hashlike)
+# ABSTRACT: Find CODE in a hash (hashlike)
 
 use strict;
 use warnings;
@@ -89,3 +89,62 @@ sub captured {
 }
 
 1;
+
+__END__
+
+=head1 SYNOPSIS
+
+    $dispatch = Hash::Dispatch->dispatch(
+
+        'xyzzy' => sub {
+            return 'xyzzy';
+        },
+
+        qr/.../ => 'xyzzy',
+
+        ...
+
+    );
+
+    $result = $dispatch->dispatch( 'xyzzy' );
+
+    $result->value->( ... );
+
+=head1 DESCRIPTION
+
+Hash::Dispatch is a tool for creating a hash-like lookup for returning a CODE reference
+
+It is hash-like because a query against the dispatcher will only return once a CODE reference a found. If a key (a string or regular expression) maps to a string, then that will cause the lookup to begin again with the new value, recursing until a CODE reference is found or a deadend is reached:
+
+    a => CODE0
+    b => CODE1
+    c => CODE2
+    d => a
+    qr/z/ => c
+
+    query( a ) => CODE0
+    query( b ) => CODE1
+    query( d ) => CODE0
+    query( xyzzy ) => CODE2
+    query( j ) => undef
+
+Hash::Dispatch will throw an exception if it is cycling:
+
+    a => b
+    b => a
+
+    query( a ) => {{{ Exception! }}}
+
+=head1 USAGE
+
+=head2 $dispatcher = Hash::Dispatch->dispatch( ... )
+
+Returns a new C<$dispatcher> with the given mapping
+
+=head2 $result = $dispatcher->dispatch( <query> )
+
+Search C<$dispatcher> with C<< <query> >> 
+
+Returns an object with a C<< ->value >> method that contains the CODE reference 
+
+Returns undef is nothing is found
