@@ -1,4 +1,5 @@
 package Hash::Dispatch;
+# ABSTRACT: Find CODE in a hash (or hashlike)
 
 use strict;
 use warnings;
@@ -21,6 +22,7 @@ sub dispatch {
 
 sub _dispatch_class {
     my $self = shift;
+    return $self->new( map => [ %{ $_[0] } ] ) if 1 == @_ && ref $_[0] eq 'HASH';
     return $self->new( map => [ @_ ] );
 }
 
